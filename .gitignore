@@ -1,0 +1,10 @@
+.gitignore
+venv/
+alter.hhd
+holy.grammar
+pygame_test.haram
+test.haram
+rat.py
+.idea
+__pycache__
+.git/

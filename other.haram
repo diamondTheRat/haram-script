@@ -1,0 +1,10 @@
+define add_3_numbers(a, b, c = 2) as {
+    grab c;
+    grab b;
+    give rat + swap;
+    grab a;
+    grab b;
+
+    output rat + swap;
+};
+adopt rat named sixty_nine; grab sixty_nine; give 69;
