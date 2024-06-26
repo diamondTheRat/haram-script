@@ -8,6 +8,6 @@ with open("main.haram") as file:
     # print(tokens)
 
 ast = parse(tokens)
-print(ast)
+# print(ast)
 
 interpret(ast)

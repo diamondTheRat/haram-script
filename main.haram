@@ -1,12 +1,7 @@
-import other;
-
-adopt rat named result;
-
-grab other.add_3_numbers;
-grab result;
-give swap(1, 2, 3);
-grab result;
-grab print;
-rat(swap, end=", ");
-grab other.sixty_nine; grab print;
-(true or 0) ? rat(swap);
+adopt rat named globals;
+grab globals;
+give {
+    "my_variable": 2
+};
+grab exec;
+rat("print(f'the variable is {my_variable}')", swap);
