@@ -1,3 +1,5 @@
+made in python 3.11
+
 # Notes
 Focused around a silly syntax because I like rats(hamsters).
 Haram script is an esoteric programming language made in 3-4 days with the goal of being hard to read and very verbose.
