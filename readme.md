@@ -9,6 +9,14 @@ I know you could make a dictionary where you define the variables and use that i
 # Credits
 Made by me because I have no inspiration, no skill, no life, no bitches, only hampter.
 
+# Future plans for haram script
+- better errors instead of using normal python ones because they don't really tell you what the issue is or where it is.
+- error handling.
+- qol improvements like a way to know what variable you're using at a certain point in the code.
+- redo the interpreter eventually. The parser is ALMOST perfect(it doesn't warn you if you mess up your code and doesn't handle EOF correctly) but the interpreter is awful.
+- attempt to improve performance by preprocessing some values.
+- better importing, currently it uses more memory than it should.
+
 # Flow
 1. initiate variables
 2. select a variable
@@ -16,6 +24,13 @@ Made by me because I have no inspiration, no skill, no life, no bitches, only ha
 4. swap rats like they're tetris pieces
 5. try not to go insane
 6. contemplate your life choices
+
+# Comments
+```
+# this is a comment
+# comments start with #
+# the lexer will ignore EVERYTHING after # in a line
+```
 
 # Variables
 ### 1) Define
@@ -144,12 +159,15 @@ Use a conditional to not have an infinite loop.
     <condition> ? eat <name>;
 };
 ```
-You can NOT go to an anchor that's inside a different block.
+You can go to anchors that are outside a block but no more than once.
+You can't go to anchors that are inside another block though.
 ```
 # All of these will result in an error or undefined behavior
 place cheese <name>;
 {
-    eat <name>;
+    {
+        eat <name>;
+    };
 };
 
 {
@@ -240,16 +258,16 @@ rat("Hello, World!");
 ```
 
 ### 2) Python modules
-These can be imported using the `__import__` function
+These can be imported using the `import_module` function
 ```
-grab __import__; 
+grab import_module; 
 grab my_module;
 give swap("my_module"); 
 grab my_moudle; # making sure the current variable is the module
 ```
 Importing modules from libraries is very similar to the code above.
 ```
-grab __import__; 
+grab import_module; 
 grab my_module;
 give swap("my_library.my_module");
 grab my_module; # making sure the current variable is the module

@@ -52,6 +52,9 @@ builtin_functions = {
     i: v for i, v in globals()["__builtins__"].items() if callable(v)
 }
 
+class AnchorMissingError(BaseException): ...
+
+
 class Module:
     def __init__(self, variables: dict):
         for i, v in variables.items():
@@ -65,17 +68,27 @@ class Interpreter:
         ast: AbstractSyntaxTree = ast or self.ast
         i = -1
         variables = variables or {"0": None, "1": None, **builtin_functions}
+        variables["import_module"] = __import__("importlib").import_module
         while i < len(ast) - 1:
             i += 1
             instruction: Node = ast[i]
             if instruction.type in expressions:
-                (self.eval(instruction, variables, execute_code=True))
+                try:
+                    result = self.eval(instruction, variables, execute_code=True)
+                except AnchorMissingError as anchor:
+                    name = str(anchor).split("'")[2]
+                    while instruction.type is not ANCHOR or instruction.first.value != name:
+                        i -= 1
+                        if i == -1:
+                            raise AnchorMissingError(
+                                f"idk what error this should be but you're missing the '{name}' anchor or it's outside this code group")
+                        instruction: Node = ast[i]
             elif instruction.type is GOTO:
                 name = instruction.first.value
                 while instruction.type is not ANCHOR or instruction.first.value != name:
                     i -= 1
                     if i == -1:
-                        raise SyntaxError(f"idk what error this should be but you're missing the '{name}' anchor or it's outside this code group")
+                        raise AnchorMissingError(f"idk what error this should be but you're missing the '{name}' anchor or it's outside this code group")
                     instruction: Node = ast[i]
             elif instruction.type is CREATE:
                 for var in instruction.first:
@@ -83,7 +96,40 @@ class Interpreter:
             elif instruction.type is ASSIGN:
                 var = variables["0"]
                 if not isinstance(var, str):
+                    # indexes = []
+                    # while var.type in [INDEX, GET_ATTRIBUTE]:
+                    #     if var.type is INDEX:
+                    #         indexes.append(Node(INDEX, self.eval(var.second, variables)))
+                    #     else:
+                    #         indexes.append(Node(GET_ATTRIBUTE, var.second.value))
+                    #     var = var.first
+#
+                    # if var.type is not VARIABLE:
+                    #     raise ValueError("idk what you grabbed but its definitely not an indexed element, an attribute or a variable")
+#
+                    # var = variables[var.value]
+                    # for i in indexes[-1:1:-1]:
+                    #     if i.type is INDEX:
+                    #         var = var[i.first]
+                    #     else:
+                    #         var = getattr(var, i.first)
+                    # if indexes[0].type is GET_ATTRIBUTE:
+                    #     setattr(var, indexes[0].first, instruction.first.value)
+                    # else:
+                    #     var[indexes[0].first] = self.eval(instruction.first, variables)
+                    if variables["0"].type is INDEX:
+                        first = variables["0"].first.value
+                        second = variables["0"].second.value
+                        variables[first][second] = self.eval(instruction.first, variables)
+                    else:
+                        setattr(variables[variables["0"].first.value], variables["0"].second.value, instruction.first.value)
+                else:
+                    variables[var] = self.eval(instruction.first, variables)
+            elif instruction.type is SELECT:
+                copy_thing = variables["0"]
+                if instruction.first.type in [INDEX, GET_ATTRIBUTE]:
                     indexes = []
+                    var = instruction.first
                     while var.type in [INDEX, GET_ATTRIBUTE]:
                         if var.type is INDEX:
                             indexes.append(Node(INDEX, self.eval(var.second, variables)))
@@ -91,8 +137,11 @@ class Interpreter:
                             indexes.append(Node(GET_ATTRIBUTE, var.second.value))
                         var = var.first
 
+
                     if var.type is not VARIABLE:
-                        raise ValueError("idk what you grabbed but its definitely not an indexed element, an attribute or a variable")
+                        raise ValueError(
+                            "idk what you grabbed but its definitely not an indexed element, an attribute or a variable")
+                    var_name = var.value
 
                     var = variables[var.value]
                     for i in indexes[-1:1:-1]:
@@ -100,18 +149,10 @@ class Interpreter:
                             var = var[i.first]
                         else:
                             var = getattr(var, i.first)
-                    if indexes[0].type is GET_ATTRIBUTE:
-                        setattr(var, indexes[0].first, instruction.first.value)
-                    else:
-                        var[indexes[0].first] = self.eval(instruction.first, variables)
-                else:
-                    variables[var] = self.eval(instruction.first, variables)
-            elif instruction.type is SELECT:
-                variables["1"] = variables["0"]
-                if instruction.first.type in [INDEX, GET_ATTRIBUTE]:
-                    variables["0"] = instruction.first
+                    variables["0"] = Node(INDEX, Variable(VARIABLE, var_name), Variable(VARIABLE, indexes[0].first))
                 else:
                     variables["0"] = instruction.first.value
+                variables["1"] = copy_thing
             elif instruction.type is DEFINE_FUNCTION:
                 name = instruction.name
                 code = instruction.second
@@ -133,29 +174,35 @@ class Interpreter:
         return True
 
     def get_current_variable(self, variables: dict):
-        var = variables["0"]
-        if not isinstance(var, str):
-            indexes = []
-            while var.type in [INDEX, GET_ATTRIBUTE]:
-                if var.type is INDEX:
-                    indexes.append(Node(INDEX, self.eval(var.second, variables)))
-                else:
-                    indexes.append(Node(GET_ATTRIBUTE, var.second.value))
-                var = var.first
-
-            if var.type is not VARIABLE:
-                raise ValueError(
-                    "idk what you grabbed but its definitely not an indexed element, an attribute or a variable")
-
-            var = variables[var.value]
-            for i in indexes[::-1]:
-                if i.type is INDEX:
-                    var = var[i.first]
-                else:
-                    var = getattr(var, i.first)
-            return var
-        else:
-            return variables[variables["0"]]
+        # var = variables["0"]
+        # if not isinstance(var, str):
+        #     indexes = []
+        #     while var.type in [INDEX, GET_ATTRIBUTE]:
+        #         if var.type is INDEX:
+        #             indexes.append(Node(INDEX, self.eval(var.second, variables)))
+        #         else:
+        #             indexes.append(Node(GET_ATTRIBUTE, var.second.value))
+        #         var = var.first
+#
+        #     if var.type is not VARIABLE:
+        #         raise ValueError(
+        #             "idk what you grabbed but its definitely not an indexed element, an attribute or a variable")
+#
+        #     var = variables[var.value]
+        #     for i in indexes[::-1]:
+        #         if i.type is INDEX:
+        #             var = var[i.first]
+        #         else:
+        #             var = getattr(var, i.first)
+        #     return var
+        # else:
+        #     return variables[variables["0"]]
+        if isinstance(variables["0"], Node):
+            if variables["0"].type is INDEX:
+                return variables[variables["0"].first.value][variables["0"].second.value]
+            else:
+                return getattr(variables[variables["0"].first.value], variables["0"].second.value)
+        return variables[variables["0"]]
 
     def eval(self, instruction: Node | Variable, variables: dict, execute_code: bool = False, ignore_rat: bool = False) -> Any:
         if instruction.type in simple_types:
@@ -185,10 +232,10 @@ class Interpreter:
             return unary_operations[instruction.type](value)
         elif instruction.type is VARIABLE:
             if instruction.value == "rat":
-                if type(variables[variables["0"]]) is Node:
-                    return self.eval(variables[variables["0"]], variables, execute_code=variables[variables["0"]].type is CODE_GROUP)
+                if type(self.get_current_variable(variables)) is Node:
+                    return self.eval(self.get_current_variable(variables), variables, execute_code=variables[variables["0"]].type is CODE_GROUP)
                 else:
-                    return variables[variables["0"]]
+                    return self.get_current_variable(variables)
             else:
                 if ignore_rat:
                     variables[variables["0"]]

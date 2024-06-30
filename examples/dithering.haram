@@ -1,0 +1,145 @@
+# REQUIRES YOU TO HAVE `pillow` INSTALLED
+# `pip install pillow`
+
+adopt rats named
+Image, path, img, data, i, data_length, img_width; # doing a multiline adoption because its easier to read
+
+grab path;
+give "./example_props/hamter.png"; # path to your image
+
+grab import_module; grab Image;
+give swap("PIL.Image");
+
+grab Image; give rat.open;
+grab img;
+give swap; # making a copy of Image in img
+
+grab path;
+grab img;
+give rat(swap);
+
+grab img;
+give rat.convert("L");
+
+grab img;
+grab img_width; give swap.width;
+
+adopt rat named time, start, end;
+grab import_module;
+grab time;
+give swap("time");
+
+grab time;
+grab start;
+give swap.time();
+
+{
+    grab list;
+    grab data;
+    give swap;
+
+    grab img;
+    grab data;
+    give rat(swap.getdata());
+
+    grab len;
+    grab data_length; give swap;
+
+    grab data;
+    grab data_length;
+    give rat(swap);
+
+    grab i;
+    give 0;
+    {
+        place cheese loop;
+
+        adopt rats named
+        pixel, quant_error, pixel2;
+
+        grab i; grab pixel; give swap;
+
+        grab data;
+        grab pixel;
+        give swap[swap];
+
+        grab pixel; # yes I am aware that pixel was already selected but it's better to make sure in case you wanna change your code later
+        grab pixel2;
+        give (swap > 150) * 255;
+
+        grab pixel;
+
+        grab pixel2; grab quant_error; give swap;
+        grab pixel;
+        grab quant_error;
+        give swap - swap;
+
+        grab i;
+        grab data[rat];
+        grab pixel2;
+        swap; give swap;
+
+        grab img_width;
+        grab i;
+        adopt rat named sum;
+        grab sum;
+        give swap + 1;
+
+        grab sum;
+        grab data_length;
+        (swap < swap) ? {
+            grab sum;
+            grab data[rat];
+            grab quant_error;
+            swap;
+            give rat + swap * 3 >> 4;
+        };;
+
+        grab img_width;
+        grab sum; give rat + swap;
+
+        grab sum;
+        grab data_length;
+        (swap < swap) ? {
+            grab sum;
+            grab data[rat];
+            grab quant_error;
+            swap;
+            give rat + swap * 5 >> 4;
+        };;
+
+        grab sum;
+        give rat - 1;
+        grab data_length;
+        (swap < swap) ? {
+            grab sum;
+            grab data[rat];
+            grab quant_error;
+            swap;
+            give rat + swap * 8 >> 4;
+        };;
+
+        grab i;
+        give rat + 1;
+        grab data_length;
+        (rat > swap + 1) ? {eat loop;};; # I used double ; otherwise it's stuck in parsing, this SHOULD be fixed in newer versions
+    };
+};
+
+grab time;
+grab end;
+give swap.time();
+
+grab start;
+grab end;
+give rat - swap;
+
+grab end;
+grab print;
+rat(swap);
+
+grab img;
+grab data;
+swap.putdata(swap);
+grab img;
+rat.save("./example_props/dithered.png");
