@@ -4,6 +4,6 @@ grammar.txt
 pygame_test.haram
 test.haram
 rat.py
-.idea
-__pycache__
+.idea/
+__pycache__/
 .git/
